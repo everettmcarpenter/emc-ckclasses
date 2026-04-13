@@ -7,7 +7,7 @@ public class Granulator extends Chugraph
     800.0 => float grainSizeMax; // used as max grain size value in cursor scaling
     25.0 => float grainSizeMin; // used as min grain size value in cursor scaling
     1.0 => float grain_duration; // the internalized length of the grains (set this)
-    1.0 => float rand_grain_duration; // amt of random grain length
+    0.0 => float rand_grain_duration; // amt of random grain length
     1.0 => float pitch; // pitch
     0.0 => float rand_pitch; // amt of random pitch
     1 => int position; // this is in samples
@@ -138,8 +138,7 @@ public class Granulator extends Chugraph
         0.0 => grain_length; // can be changed to acheive a more varying asynchronous envelope for each grain duration
         for(int i; i < env.size(); i++)
         {
-            grain_duration*0.5::ms => env[i].attackTime; 
-            grain_duration*0.5::ms => env[i].releaseTime;
+            grain_duration*0.5::ms => env[i].attackTime => env[i].releaseTime; 
         }
         // go!
         while( true )
@@ -149,8 +148,7 @@ public class Granulator extends Chugraph
             // compute grain duration for envelope
             for(int i; i < env.size(); i++)
             {
-                grain_length*0.5::ms => env[i].attackTime; 
-                grain_length*0.5::ms => env[i].releaseTime;
+                grain_length*0.5::ms => env[i].attackTime => env[i].releaseTime;
             }
             // set buffer playback rate
             if(rand_pitch) Std.rand2f( Math.max(0.0625, pitch - (rand_pitch/(pitchscale+1))), pitch + (rand_pitch/(pitchscale+1)) ) => buffer.rate;
@@ -159,7 +157,8 @@ public class Granulator extends Chugraph
             if(rand_position) Std.rand2( Math.max(1, position - rand_position ) $ int, Math.min( samples, position + rand_position ) $ int ) => buffer.pos;
             else position => buffer.pos;
             if(go)
-            {    env[0].keyOn(); // enable envelope
+            {   
+                env[0].keyOn(); // enable envelope
                 grain_length*0.5::ms => now; // wait for rise
                 env[0].keyOff(); // close envelope
                 grain_length*0.5::ms => now; // wait
