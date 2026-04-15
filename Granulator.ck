@@ -111,7 +111,7 @@ public class Granulator extends Chugraph
         while( true )
         {
             // slew
-            ((pitch_target - pitch) * slew + pitch) => pitch;
+            ( ( pitch_target - pitch ) * slew + pitch ) => pitch;
             // wait
             5::ms => now;
         }
@@ -126,7 +126,7 @@ public class Granulator extends Chugraph
         while( true )
         {
             // slew
-            ( (gain_target - buffer.gain()) * slew + buffer.gain() ) => buffer.gain;
+            ( ( gain_target - buffer.gain() ) * slew + buffer.gain() ) => buffer.gain;
             // wait
             10::ms => now;
         }
@@ -136,7 +136,7 @@ public class Granulator extends Chugraph
     fun void grain()
     { 
         0.0 => grain_length; // can be changed to acheive a more varying asynchronous envelope for each grain duration
-        for(int i; i < env.size(); i++)
+        for( int i; i < env.size(); i++ )
         {
             grain_duration*0.5::ms => env[i].attackTime => env[i].releaseTime; 
         }
@@ -144,59 +144,50 @@ public class Granulator extends Chugraph
         while( true )
         {   
             // compute grain length
-            Math.clampf((Std.rand2f( Math.max(1.0, grain_duration - rand_grain_duration), grain_duration + rand_grain_duration)), 0, samples) => grain_length;
+            Math.clampf( ( Std.rand2f( Math.max( 1.0, grain_duration - rand_grain_duration ), grain_duration + rand_grain_duration ) ), 0, samples ) => grain_length;
             // compute grain duration for envelope
-            for(int i; i < env.size(); i++)
+            for( int i; i < env.size(); i++ )
             {
                 grain_length*0.5::ms => env[i].attackTime => env[i].releaseTime;
             }
             // set buffer playback rate
-            if(rand_pitch) Std.rand2f( Math.max(0.0625, pitch - (rand_pitch/(pitchscale+1))), pitch + (rand_pitch/(pitchscale+1)) ) => buffer.rate;
+            if( rand_pitch ) Std.rand2f( Math.max( 0.0625, pitch - ( rand_pitch / ( pitchscale + 1 ) ) ), pitch + ( rand_pitch / ( pitchscale + 1 ) ) ) => buffer.rate;
             else pitch => buffer.rate;
             // set buffer position
-            if(rand_position) Std.rand2( Math.max(1, position - rand_position ) $ int, Math.min( samples, position + rand_position ) $ int ) => buffer.pos;
+            if( rand_position ) Std.rand2( Math.max( 1, position - rand_position ) $ int, Math.min( samples, position + rand_position ) $ int ) => buffer.pos;
             else position => buffer.pos;
-            if(go)
+            if( go )
             {   
                 env[0].keyOn(); // enable envelope
-                grain_length*0.5::ms => now; // wait for rise
+                grain_length * 0.5::ms => now; // wait for rise
                 env[0].keyOff(); // close envelope
-                grain_length*0.5::ms => now; // wait
+                grain_length * 0.5::ms => now; // wait
                 pause => now; // until next grain
-                if( spacer%2 ) Std.rand2f( space_length*Math.max(1.0, grain_duration - rand_grain_duration), grain_duration + rand_grain_duration)::ms => now; // if the spacer is enabled, it will cause random pauses between grains
+                if( spacer%2 ) Std.rand2f( space_length*Math.max( 1.0, grain_duration - rand_grain_duration ), grain_duration + rand_grain_duration )::ms => now; // if the spacer is enabled, it will cause random pauses between grains
             }
+            else 10::ms => now; // prevent rapid loop if go == 0
         }
     }
 
-    fun void interpolation(int type)
+    fun void interpolation( int type )
     {
-        if(type < 3 && type >= 0) buffer.interp(type);
+        if( type < 3 && type >= 0 ) buffer.interp( type );
     }
 
-    fun void loop(int onOff)
+    fun void loop( int onOff )
     {
-        if(onOff > 1 || onOff < 0) return;
-        buffer.loop(onOff);
+        if( onOff > 1 || onOff < 0 ) return;
+        buffer.loop( onOff );
     }
 
-    fun void setPitch(float n_pitch) // slew to position
+    fun void setPitch( float n_pitch ) // slew to position
     {
-        if(n_pitch > 0.0) n_pitch => pitch_target;
+        if( n_pitch > 0.0 ) n_pitch => pitch_target;
     }
 
-    fun void instantPitch(float n_pitch) // jump to position
+    fun void instantPitch( float n_pitch ) // jump to position
     {
-        if(n_pitch > 0.0) n_pitch => pitch;
-    }
-
-    fun void setPosition(float n_position) // normalized to [0.0,1.0]
-    {
-        if(n_position > 0.0) n_position * samples => position_target;
-    }
-
-    fun float getPosition()
-    {
-        return position_target;
+        if( n_pitch > 0.0 ) n_pitch => pitch;
     }
 
     fun float getPitch() 
@@ -204,24 +195,34 @@ public class Granulator extends Chugraph
         return pitch_target;
     }
 
-    fun void instantPosition(float n_position) // jump to position
+    fun void setPosition( float n_position ) // normalized to [0.0,1.0]
     {
-        if(n_position > 0) (n_position * samples) $ int  => position;
+        if( n_position > 0.0 ) n_position * samples => position_target;
     }
 
-    fun void setVolume(float n_gain)
+    fun float getPosition()
+    {
+        return position_target;
+    }
+
+    fun void instantPosition( float n_position ) // jump to position
+    {
+        if( n_position > 0 ) ( n_position * samples ) $ int  => position;
+    }
+
+    fun void setVolume( float n_gain )
     {
         n_gain => gain_target;
     }
 
-    fun void instantGain(float n_gain)
+    fun void instantGain( float n_gain )
     {
         n_gain => gain => buffer.gain;
     }
 
-    fun void grainSize(float n_size)
+    fun void grainSize( float n_size )
     {
-        if(n_size > 0) n_size => grain_duration;
+        if( n_size > 0 ) n_size => grain_duration;
     }
 
     fun float grainSize()
@@ -229,7 +230,7 @@ public class Granulator extends Chugraph
         return grain_duration;
     }
 
-    fun void randomGrainSize(float amt)
+    fun void randomGrainSize( float amt )
     {
         amt => rand_grain_duration;
     }
@@ -239,9 +240,9 @@ public class Granulator extends Chugraph
         return rand_grain_duration;
     }
 
-    fun void randomPosition(float amt)
+    fun void randomPosition( float amt )
     {
-        Math.trunc((amt * (samples)/(10))) $ int => rand_position;
+        Math.trunc( ( amt * ( samples ) / 10 ) ) $ int => rand_position;
     }
 
     fun float randomPosition() 
