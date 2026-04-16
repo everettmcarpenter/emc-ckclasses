@@ -32,6 +32,14 @@ public class GrainSwarm extends Chugraph
         env.value(1.0);
     }
 
+    // random settings
+    fun void randomInit()
+    {
+        Math.randomf() * 100.0 => this.grainSize;
+        Math.randomf() => this.position;
+        Math.randomf() * 50.0 => this.randomGrainSize;
+    }
+
     fun void interpolation(int type)
     {
         for(int i; i < grains.size(); i++)
