@@ -62,7 +62,7 @@ public class OSCDJMidi extends DJMidi
         while( true )
         {
             midin => now;
-            if( midimsg.data2 >= 0 && midimsg.data2 < 2 )
+            if( midimsg.data2 > 0 || midimsg.data2 <= 2 )
             {
                 midimsg.data3 => faders[midimsg.data2];
                 oscSend( "BCD/slider/" + midimsg.data2 + "/", faders[midimsg.data2] );
