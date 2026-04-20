@@ -65,7 +65,7 @@ public class OSCDJMidi extends DJMidi
             if( midimsg.data2 >= 0 && midimsg.data2 < 2 )
             {
                 midimsg.data3 => faders[midimsg.data2];
-                oscSend( "BCD2000/slider/" + midimsg.data2, faders[midimsg.data2] );
+                oscSend( "BCD/slider/" + midimsg.data2, faders[midimsg.data2] );
             }
         }
     }
