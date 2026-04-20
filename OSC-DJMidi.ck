@@ -66,6 +66,7 @@ public class OSCDJMidi extends DJMidi
             {
                 midimsg.data3 => faders[midimsg.data2];
                 oscSend( "BCD/slider/" + midimsg.data2 + "/", faders[midimsg.data2] );
+                1::ms => now;
             }
         }
     }
