@@ -20,7 +20,7 @@ public class DJMidi
     fun void DJMidi( int device )
     {
         // storage
-        device => this->midiDevice;
+        device => this.midiDevice;
         // open the device
         if( !midin.open( midiDevice ) ) me.exit();
         // print out device that was opened
