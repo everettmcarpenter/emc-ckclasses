@@ -11,9 +11,9 @@ public class DJMidi
     fun void DJMidi() 
     {
         // open the device
-        if( !min.open( midiDevice ) ) me.exit();
+        if( !midin.open( midiDevice ) ) me.exit();
         // print out device that was opened
-        <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
+        <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
     }
 
     // overloaded constructor
@@ -22,9 +22,9 @@ public class DJMidi
         // storage
         device => this->midiDevice;
         // open the device
-        if( !min.open( midiDevice ) ) me.exit();
+        if( !midin.open( midiDevice ) ) me.exit();
         // print out device that was opened
-        <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
+        <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
     }
 
     // listen and update internal data
