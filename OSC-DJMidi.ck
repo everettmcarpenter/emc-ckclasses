@@ -18,9 +18,9 @@ public class OSCDJMidi extends DJMidi
         // storage
         device => this.midiDevice;
         // open the device
-        if( !min.open( this.midiDevice ) ) me.exit();
+        if( !midin.open( this.midiDevice ) ) me.exit();
         // print out device that was opened
-        <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
+        <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
         // aim the transmitter at destination
         oout.dest( hostname, port );
         // update
@@ -37,9 +37,9 @@ public class OSCDJMidi extends DJMidi
         // storage
         device => this.midiDevice;
         // open the device
-        if( !min.open( this.midiDevice ) ) me.exit();
+        if( !midin.open( this.midiDevice ) ) me.exit();
         // print out device that was opened
-        <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
+        <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
         // aim the transmitter at destination
         oout.dest( hostname, port );
         // update
