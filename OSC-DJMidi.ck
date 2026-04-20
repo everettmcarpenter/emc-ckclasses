@@ -61,7 +61,7 @@ public class OSCDJMidi extends DJMidi
     {
         while( true )
         {
-            midi.midin => now;
+            midin => now;
             if( midimsg.data2 >= 0 && midimsg.data2 < 2 )
             {
                 midimsg.data3 => faders[midimsg.data2];
