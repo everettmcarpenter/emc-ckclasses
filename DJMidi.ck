@@ -35,7 +35,7 @@ public class DJMidi
             midin => now;
             while( midin.recv( midimsg ) )
             {
-                
+                if( midimsg.data2 >= 0 && midimsg.data2 < 2 ) midimsg.data3 => faders[midimsg.data2];
             }
         }
     }
