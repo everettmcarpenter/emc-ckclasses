@@ -2,7 +2,7 @@
 public class OSCDJMidi extends DJMidi
 {
     // interpreters
-    OscIn oin; OscMsg omsg;
+    OscOut oout;
 
     // destination host name
     "localhost" => string hostname;
@@ -10,7 +10,7 @@ public class OSCDJMidi extends DJMidi
     6449 => int port;
 
     // aim the transmitter at destination
-    oin.dest( hostname, port );
+    oout.dest( hostname, port );
 
     // overloaded constructor
     fun void OSCDJMidi( int device )
@@ -22,7 +22,7 @@ public class OSCDJMidi extends DJMidi
         // print out device that was opened
         <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
         // aim the transmitter at destination
-        oin.dest( hostname, port );
+        oout.dest( hostname, port );
         // update
         spork ~ update();
     }
@@ -41,7 +41,7 @@ public class OSCDJMidi extends DJMidi
         // print out device that was opened
         <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
         // aim the transmitter at destination
-        oin.dest( hostname, port );
+        oout.dest( hostname, port );
         // update
         spork ~ update();
     }
@@ -49,11 +49,11 @@ public class OSCDJMidi extends DJMidi
     fun void oscSend( string address, float value )
     {
         // start message
-        oin.start( address );
+        oout.start( address );
         // add value
-        oin.add( value );
+        oout.add( value );
         // send message
-        oin.send();
+        oout.send();
     }
 
     // listen and update internal data
