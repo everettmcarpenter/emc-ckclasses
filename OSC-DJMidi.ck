@@ -16,9 +16,9 @@ public class OSCDJMidi extends DJMidi
     fun void OSCDJMidi( int device )
     {
         // storage
-        device => this->midiDevice;
+        device => this.midiDevice;
         // open the device
-        if( !min.open( this->midiDevice ) ) me.exit();
+        if( !min.open( this.midiDevice ) ) me.exit();
         // print out device that was opened
         <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
         // aim the transmitter at destination
@@ -31,13 +31,13 @@ public class OSCDJMidi extends DJMidi
     fun void OSCDJMidi( int device, string hostname, int port )
     {
         // hostname
-        hostname => this->hostname;
+        hostname => this.hostname;
         // port
-        port => this->port;
+        port => this.port;
         // storage
-        device => this->midiDevice;
+        device => this.midiDevice;
         // open the device
-        if( !min.open( this->midiDevice ) ) me.exit();
+        if( !min.open( this.midiDevice ) ) me.exit();
         // print out device that was opened
         <<< "MIDI device:", min.num(), " -> ", min.name() >>>;
         // aim the transmitter at destination
