@@ -13,7 +13,6 @@ public class PointSourceDecoder extends GCircle
         // randomize
         Math.randomf() * 5.0 => dAzi;
         Math.randomf() * 1.0 => dElev;
-        // update method
     }
 
     fun void speed( float az, float el ) { az => dAzi; el => dElev; }

@@ -143,8 +143,6 @@ public class SoundSphere
         this.decoders << n;
         this.reencoders << renc;
         this.shifters << pit;
-        // gain
-        dac.gain( 1.0 / this.decoders.size() );
         // we have an increased number of objects now
         decoders.size() => N;
         //
@@ -173,8 +171,6 @@ public class SoundSphere
         this.decoders << n;
         this.reencoders << renc;
         this.shifters << pit;
-        // gain
-        dac.gain( 1.0 / this.decoders.size() );
         // we have an increased number of objects now
         decoders.size() => N;
         //
@@ -192,6 +188,21 @@ public class SoundSphere
         // shift and mix
         pit.mix( 0.6 );
         pit.shift( Math.randomf() * -1.0 * n.color().x * 12.0 );
+    }
+
+    fun void removeDecoder( int i )
+    {
+        if( i >= N || i < 0 ) <<< "SoundSphere : Error " >>>;
+        else
+        {
+            summation =< decoders[i - 1].ambiDecoder;
+            decoders[i - 1] --< mesh;
+            decoders.erase( i - 1 ); shifters.erase( i - 1 ); reencoders.erase( i - 1 );
+            // we have an decreased number of objects now
+            decoders.size() => N;
+            //
+            resum.gain( 1.0 / N );
+        }
     }
 
     // calculate normalized vector given spherical coordinates
