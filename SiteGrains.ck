@@ -10,10 +10,9 @@
     the new input, enabling interpolation, and change oriented parameter sequences.
 */
 
-@import "GrainSwarm"
 @import "SiteShape"
 
-public class SiteGrains extends GrainSwarm
+public class SiteGrains
 {
     // internal reference
     SiteShape @ internalShape;

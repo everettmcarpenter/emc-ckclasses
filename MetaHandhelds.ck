@@ -66,7 +66,6 @@ public class MetaHandhelds
             {
                 if( msg.numArgs() == 3 )
                 {
-                    
                     // joystick axis motion
                     if( msg.address == "/left/gyroscope" )
                     {
@@ -114,7 +113,9 @@ public class MetaHandhelds
 
                         // delta
                         (rightVelocity - lastRight) => deltaRightVelocity;
-                    }              
+                    }   
+
+                    movement.broadcast();           
                 }
             }
         }

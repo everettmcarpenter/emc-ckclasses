@@ -2,9 +2,9 @@
 
 public class GrainSwarm extends Chugraph
 {
-    Granulator grains[4] => Gain sum(1.0/4.0) => Envelope env(2::second) => outlet;
+    Granulator grains[1] => Gain sum(1.0) => Envelope env(50::ms) => outlet;
 
-    float cpitch; float cposition; float csize; string cfile; int cloop; float crandomsize; float crandompos; int cspace;
+    float cpitch; float cposition; float csize; string cfile; int cloop; float crandomsize; float crandompos; int cspace; int onOff;
 
     fun void GrainSwarm(string file)
     {
@@ -17,6 +17,7 @@ public class GrainSwarm extends Chugraph
         }
         // begin
         env.value(1.0);
+        1 => onOff;
     }
 
     fun void GrainSwarm()
@@ -30,6 +31,7 @@ public class GrainSwarm extends Chugraph
         }
         // begin
         env.value(1.0);
+        1 => onOff;
     }
 
     // random settings
@@ -149,12 +151,14 @@ public class GrainSwarm extends Chugraph
     fun dur on()
     {
         env.keyOn();
+        1 => onOff;
         return env.duration();
     }
 
     fun dur off()
     {
         env.keyOff();
+        0 => onOff;
         return env.duration();
     }
 }
