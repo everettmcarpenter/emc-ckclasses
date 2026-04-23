@@ -1,7 +1,7 @@
 public class PointSourceEncoder extends GCircle
 {
     // ambisonic component
-    Encode3 ambiEncoder( 0.0, 0.0 );
+    Encode3 ambiEncoder;
     (180.0 / pi) => static float rad2degree;
 
     // position
