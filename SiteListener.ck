@@ -9,6 +9,7 @@ public class SiteListener
 
     // change
     Event change;
+    1 => int go;
 
     // default port
     6449 => int port;
@@ -57,6 +58,7 @@ public class SiteListener
         for( int i; i < objCount; i++ ) { swar[i].off(); }
 
         // start listening
+        spork ~ listenForSignal();
         spork ~ updateShape();
         spork ~ updateGrain();
     }
@@ -79,6 +81,7 @@ public class SiteListener
         for( int i; i < objCount; i++ ) { swar[i].off(); }
 
         // start listening
+        spork ~ listenForSignal();
         spork ~ updateShape();
         spork ~ updateGrain();
     }
@@ -90,6 +93,9 @@ public class SiteListener
     fun int lastPerson() { return lastPersonChanged; }
 
     fun void handheldWidth( float left, float right ) { Math.fabs( left - right ) * grainSizeModifier + 1.0 => baseGrainSize; }
+
+    // map difference in height to pitch
+    fun void handheldHeight( float left, float right ) { Math.fabs( left - right ) }
 
     // source file
     fun void loadFile( string filename ) { for( int i; i < objCount; i++ ) swarms[i].fileSwap( filename ); }
@@ -106,12 +112,42 @@ public class SiteListener
                                      objects[lastPersonChanged].state >>>;
     }
     
+    // listen for the signal
+    fun void listenForSignal()
+    {
+        OscIn on;
+        OscMsg omsg;
+
+        on.port( port );
+        on.addAddress( "/data/start" );
+
+        on => now;
+        while( on.recv( msg ) )
+        {
+            msg.getInt( 0 ) => go;
+        }
+
+        if( go ) me.exit();
+    }
+
     // gametrack handling
     fun void updateShape()
     {
+        <<< "waiting for signal" >>>;
+        while( !go )
+        {
+            for( int i; i < 10; i++ )
+            {
+                cherr <= " . ";
+                500::ms => now;
+            }
+            cherr <= IO.nl();
+        }
+
+        <<< "let us begin. . . " >>>;
         while( true )
         {
-            // wait on HidIn as event
+            // wait on osc as event
             oin => now;
             
             // messages received

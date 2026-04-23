@@ -1,3 +1,7 @@
+// left right = x
+// up down = y
+// forward back = z
+
 public class MetaHandhelds
 {
     // HID objects
@@ -28,6 +32,10 @@ public class MetaHandhelds
     // z^-1 Velocity
     vec3 lastLeft;
     vec3 lastRight;
+
+    // positional data
+    vec3 leftPosition;
+    vec3 rightPosition;
     
     fun void MetaHandhelds( int nport )
     {
@@ -50,8 +58,25 @@ public class MetaHandhelds
 
     fun void print()
     {
-        <<< leftVelocity, rightVelocity >>>;
+        <<< "Velocity: ", leftVelocity, rightVelocity >>>;
+        <<< "Position: ", leftPosition, rightPosition >>>;
     }
+
+    fun float ldx() { return leftVelocity.x; }
+    fun float ldy() { return leftVelocity.y; }
+    fun float ldz() { return leftVelocity.z; }
+
+    fun float rdx() { return rightVelocity.x; }
+    fun float rdy() { return rightVelocity.y; }
+    fun float rdz() { return rightVelocity.z; }
+
+    fun float lx() { return leftPosition.x; }
+    fun float ly() { return leftPosition.y; }
+    fun float lz() { return leftPosition.z; }
+
+    fun float rx() { return rightPosition.x; }
+    fun float ry() { return rightPosition.y; }
+    fun float rz() { return rightPosition.z; }
     
     // gametrack handling
     fun void update()
@@ -113,7 +138,39 @@ public class MetaHandhelds
 
                         // delta
                         (rightVelocity - lastRight) => deltaRightVelocity;
-                    }   
+                    }  
+
+                    else if( msg.address == "/left/position" )
+                    {
+                        float coord[3];
+                        for(int n; n < msg.numArgs(); n++)
+                        {
+                            if(msg.typetag.charAt(n) == 'i')
+                                msg.getInt(n) $ float => coord[n];
+                            else if(msg.typetag.charAt(n) == 'f')
+                                msg.getFloat(n) => coord[n];
+                        }
+                        
+                        coord[0] => leftPosition.x;
+                        coord[1] => leftPosition.y;
+                        coord[2] => leftPosition.z;
+                    }            
+
+                    else if( msg.address == "/right/position" )
+                    {
+                        float coord[3];
+                        for(int n; n < msg.numArgs(); n++)
+                        {
+                            if(msg.typetag.charAt(n) == 'i')
+                                msg.getInt(n) $ float => coord[n];
+                            else if(msg.typetag.charAt(n) == 'f')
+                                msg.getFloat(n) => coord[n];
+                        }
+                        
+                        coord[0] => rightPosition.x;
+                        coord[1] => rightPosition.y;
+                        coord[2] => rightPosition.z;
+                    }            
 
                     movement.broadcast();           
                 }
