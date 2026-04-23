@@ -14,8 +14,9 @@ public class PointSourceDecoder extends GCircle
         Math.randomf() * 5.0 => dAzi;
         Math.randomf() * 1.0 => dElev;
         // update method
-        spork ~ update();
     }
+
+    fun void speed( float az, float el ) { az => dAzi; el => dElev; }
 
     fun void update()
     {

@@ -8,6 +8,7 @@ public class SoundSphere
 
     // ambisonics
     OrderGain3 summation;
+    OrderGain2 resum( 1.0 );
 
     // camera
     GOrbitCamera cam;
@@ -22,8 +23,12 @@ public class SoundSphere
     PointSourceEncoder encoders[N];
     // decoders
     PointSourceDecoder decoders[N];
+    // reencoders
+    Encode2 reencoders[N];
     // pitch shifters
     PitShift shifters[N];
+    // base speed
+    float speed;
 
     // constructors
     fun void SoundSphere( int n )
@@ -132,14 +137,18 @@ public class SoundSphere
     {
         PointSourceDecoder n;
         PitShift pit;
-        summation => n.ambiDecoder => pit => dac; // patch
+        Encode2 renc;
+        summation => n.ambiDecoder => pit => renc => resum; // patch
         // append to internal array
         this.decoders << n;
+        this.reencoders << renc;
         this.shifters << pit;
         // gain
         dac.gain( 1.0 / this.decoders.size() );
         // we have an increased number of objects now
         decoders.size() => N;
+        //
+        resum.gain( 1.0 / N );
         // attach it to the sphere
         decoders[N - 1] --> mesh;
         // place it somewhere
@@ -158,14 +167,18 @@ public class SoundSphere
     {
         PointSourceDecoder n;
         PitShift pit;
-        summation => n.ambiDecoder => pit => dac; // patch
+        Encode2 renc;
+        summation => n.ambiDecoder => pit => renc => resum; // patch
         // append to internal array
         this.decoders << n;
+        this.reencoders << renc;
         this.shifters << pit;
         // gain
         dac.gain( 1.0 / this.decoders.size() );
         // we have an increased number of objects now
         decoders.size() => N;
+        //
+        resum.gain( 1.0 / N );
         // attach it to the sphere
         decoders[N - 1] --> mesh;
         // place it somewhere
@@ -214,6 +227,47 @@ public class SoundSphere
     // return the summation
     fun OrderGain3 sum() { return summation; }
 
+    // return the re-encoded output
+    fun OrderGain2 bformat() { return resum; }
+
+    // number of decoders
+    fun int nDecoders() { return decoders.size(); }
+
+    // stop
+    fun void stop()
+    {
+        for( int i; i < decoders.size(); i++)
+        {
+            decoders[i].speed( 0.0, 0.0 );
+        }
+    }
+
+    // set decoder position
+    fun void decoderPosition( float azi, float zenith, int index )
+    {
+        if( index >= N || index < 0 )
+        {
+            <<< "error" >>>;
+        }
+        else
+        {
+            decoders[index].position( azi, zenith );
+        }
+    }
+
+    // set decoder position
+    fun void decoderSpeed( float azi, float zenith, int index )
+    {
+        if( index >= N || index < 0 )
+        {
+            <<< "error" >>>;
+        }
+        else
+        {
+            decoders[index].speed( azi, zenith );
+        }
+    }
+
     // rotate the sphere 
     fun void rotate( float xrota, float yrota )
     {
@@ -235,6 +289,10 @@ public class SoundSphere
             // make everyone look at you
             for( int i; i < decoders.size(); i++ )
             {
+                // move
+                decoders[i].position( decoders[i].ambiDecoder.azi() + decoders[i].dAzi, decoders[i].ambiDecoder.elev() + decoders[i].dElev );
+                reencoders[i].pos( decoders[i].ambiDecoder.azi(), decoders[i].ambiDecoder.elev() );
+                // look
                 decoders[i].lookAt( mesh.pos() );
             }
             // move
