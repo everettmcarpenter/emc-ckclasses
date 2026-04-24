@@ -1,8 +1,10 @@
 @import "Granulator"
+@import "Granular-Support"
 
 public class GrainSwarm extends Chugraph
 {
-    Granulator grains[16] => Gain sum(1.0/12.0) => Envelope env(2::second) => outlet;
+    Granulator grains[16] => Gain sum( 1.0/ grains.size() ) => Envelope env( 2::second ) => outlet;
+    GranularSupport helper;
 
     float cpitch; float cposition; float csize; string cfile; int cloop; float crandomsize; float crandompos; int cspace;
 
@@ -16,7 +18,7 @@ public class GrainSwarm extends Chugraph
             grains[i].play();
         }
         // begin
-        env.value(1.0);
+        env.value( 1.0 );
     }
 
     fun void GrainSwarm()
@@ -30,6 +32,19 @@ public class GrainSwarm extends Chugraph
         }
         // begin
         env.value( 1.0 );
+    }
+
+    // call upon granular support class
+    fun void support( int key )
+    {
+        for( int i; i < grains.size(); i++ ) helper.key( key, grains[i] );
+    }
+
+    // call upon granular support class
+    fun void support( float x, float y )
+    {
+        [ x, y ] @=> float mouse[];
+        for( int i; i < grains.size(); i++ ) helper.mouse( mouse, grains[i] );
     }
 
     fun void interpolation( int type )

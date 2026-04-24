@@ -1,11 +1,11 @@
-@import { "GrainSwarm", "GameTrak" }
+@import { "GrainSwarm", "GameTrak", "HidInformation" }
 
 public class Transport
 {
     0.0025 => float sens;
     
     // given a loop setting, gametrak and collection of swarms, control the swarms via the trak
-    fun void mainTransport(GameTrak t, GrainSwarm swarms[], int loop)
+    fun void mainTransport( GameTrak t, GrainSwarm swarms[], int loop )
     {
         // step increments over a constant time
         float steps[2];
@@ -28,7 +28,7 @@ public class Transport
     }
 
     // version that allows various loop settings
-    fun void mainTransport(GameTrak t, GrainSwarm swarms[], int loops[])
+    fun void mainTransport( GameTrak t, GrainSwarm swarms[], int loops[] )
     {
         // step increments over a constant time
         float steps[2];
@@ -48,7 +48,23 @@ public class Transport
         }
     }
 
-    fun void transport(GrainSwarm swarm, float step, int loop)
+    // given a loop setting, hid and collection of swarms, control the swarms via the hid
+    fun void mainTransport( HidInformation hid, GrainSwarm swarms[], int loop )
+    {
+        // step increment over a constant time
+        float step;
+
+        // update step sizes
+        while( true )
+        {
+            // x axis position for left and right controls
+            hid.x() * sens => step;
+            for(int t; t < swarms.size(); t++) transport(swarms[t], step, loop);
+            250::ms => now;
+        }
+    }
+
+    fun void transport( GrainSwarm swarm, float step, int loop )
     {
         1 => int flipFlop;
         // move through the swarm's file
@@ -75,7 +91,5 @@ public class Transport
             swarm.position(swarm.position() + (flipFlop * (step/2.0)));
             swarm.position(Math.clampf(swarm.position() + (flipFlop * (step/2.0)), 0.0, 1.0));
         }
-        
-        <<< swarm.position() >>>;
     }
 }

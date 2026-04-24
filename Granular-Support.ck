@@ -3,6 +3,10 @@
 public class GranularSupport // carbon copy of keyboard mapping from Everett
 {
     int print;
+
+    fun void GranularSupport() {};
+    fun void GranularSupport( int print ) { print => this.print; };
+
     fun void key(int key, Granulator gran) // huge interface layer 
     {
         // position setting via numerics
