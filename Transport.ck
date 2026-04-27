@@ -58,7 +58,7 @@ public class Transport
         while( true )
         {
             // x axis position for left and right controls
-            hid.x() * sens => step;
+            2.0 * (hid.x() -0.5) * sens => step;
             for(int t; t < swarms.size(); t++) transport(swarms[t], step, loop);
             250::ms => now;
         }
@@ -81,9 +81,11 @@ public class Transport
         // else if go back to the beginning
         else if(loop == 1)
         {
-            swarm.position(0.0);
-            swarm.position(swarm.position() + (flipFlop * (step/2.0)));
-            swarm.position(Math.clampf(swarm.position() + (flipFlop * (step/2.0)), 0.0, 1.0));
+            if(swarm.position() == swarm.fileSize()) swarm.position( 0.0 );
+            else 
+            {
+                swarm.position(Math.clampf(swarm.position() + (flipFlop * (step/2.0)), 0.0, 1.0));
+            }
         }
         
         else if(loop == 0)

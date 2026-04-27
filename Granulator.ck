@@ -5,7 +5,7 @@ public class Granulator extends Chugraph
     string filename; // audio file
     // parameters of the granulator 
     800.0 => float grainSizeMax; // used as max grain size value in cursor scaling
-    25.0 => float grainSizeMin; // used as min grain size value in cursor scaling
+    1.0 => float grainSizeMin; // used as min grain size value in cursor scaling
     1.0 => float grain_duration; // the internalized length of the grains (set this)
     0.0 => float rand_grain_duration; // amt of random grain length
     1.0 => float pitch; // pitch

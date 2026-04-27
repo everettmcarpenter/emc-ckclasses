@@ -219,6 +219,16 @@ public class GranularSupport // carbon copy of keyboard mapping from Everett
             6.0 => gran.rand_pitch;
             if( print ) <<< "randomness of pitch: ", gran.rand_pitch >>>;
         }
+        else if( key == 228 )
+        {
+            gran.grainSize( Math.clampf( gran.grainSize() + ((gran.grainSize() / 6.0) + 0.01), gran.grainSizeMin, gran.grainSizeMax ) );
+            if( print ) <<< "+ grain size: ", gran.grainSize() >>>;
+        }
+        else if( key == 230 )
+        {
+            gran.grainSize( Math.clampf( gran.grainSize() - ((gran.grainSize() / 6.0) + 0.01), gran.grainSizeMin, gran.grainSizeMax ) );
+            if( print ) <<< "- grain size: ", gran.grainSize() >>>;
+        }
         else if( key == 56 )
         {
             if(gran.pitchscale) 0 => gran.pitchscale;

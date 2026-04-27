@@ -5,6 +5,7 @@ public class GrainSwarm extends Chugraph
 {
     Granulator grains[16] => Gain sum( 1.0/ grains.size() ) => Envelope env( 2::second ) => outlet;
     GranularSupport helper;
+    1 => helper.print;
 
     float cpitch; float cposition; float csize; string cfile; int cloop; float crandomsize; float crandompos; int cspace;
 
