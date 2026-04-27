@@ -9,7 +9,7 @@ public class SiteListener
 
     // change
     Event change;
-    1 => int go;
+    0 => int go;
 
     // default port
     6449 => int port;
@@ -95,7 +95,7 @@ public class SiteListener
     fun void handheldWidth( float left, float right ) { Math.fabs( left - right ) * grainSizeModifier + 1.0 => baseGrainSize; }
 
     // map difference in height to pitch
-    fun void handheldHeight( float left, float right ) { Math.fabs( left - right ) }
+    fun void handheldHeight( float left, float right ) { Math.fabs( left - right ); }
 
     // source file
     fun void loadFile( string filename ) { for( int i; i < objCount; i++ ) swarms[i].fileSwap( filename ); }
