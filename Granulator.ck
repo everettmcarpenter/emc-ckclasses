@@ -98,7 +98,7 @@ public class Granulator extends Chugraph
             // slew towards position
             ( (position_target - position) * slew + position ) $ int => position;
             // wait time
-            1::ms => now;
+            10::ms => now;
         }
     }
 
@@ -106,14 +106,14 @@ public class Granulator extends Chugraph
     fun void ramp_pitch()
     {
         // the slew
-        0.01 => float slew;
+        0.1 => float slew;
         // go
         while( true )
         {
             // slew
             ((pitch_target - pitch) * slew + pitch) => pitch;
             // wait
-            5::ms => now;
+            50::ms => now;
         }
     }
 
@@ -121,7 +121,7 @@ public class Granulator extends Chugraph
     fun void ramp_gain()
     { 
         // the slew
-        0.05 => float slew;
+        0.5 => float slew;
         // go
         while( true )
         {
@@ -166,6 +166,19 @@ public class Granulator extends Chugraph
                 if( spacer%2 ) Std.rand2f( space_length*Math.max(1.0, grain_duration - rand_grain_duration), grain_duration + rand_grain_duration)::ms => now; // if the spacer is enabled, it will cause random pauses between grains
             }
         }
+    }
+
+    fun void on()
+    {
+        1.0 => gain_target;
+        1 => go;
+    }
+
+    fun void off()
+    {
+        env[0].keyOff();
+        0 => gain_target;
+        0 => go;
     }
 
     fun void interpolation(int type)
@@ -237,6 +250,16 @@ public class Granulator extends Chugraph
     fun float randomGrainSize() 
     {
         return rand_grain_duration;
+    }
+
+    fun void randomPitch( float amt )
+    {
+        amt => rand_pitch;
+    }
+
+    fun float randomPitch()
+    {
+        return rand_pitch;
     }
 
     fun void randomPosition(float amt)

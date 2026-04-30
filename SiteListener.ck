@@ -1,5 +1,6 @@
 @import "SiteShape.ck"
 @import "GrainSwarm.ck"
+@import "AudioFile.ck"
 
 public class SiteListener 
 {
@@ -9,7 +10,8 @@ public class SiteListener
 
     // change
     Event change;
-    0 => int go;
+    0 => int start;
+    1 => int currentStage;
 
     // default port
     6449 => int port;
@@ -19,25 +21,31 @@ public class SiteListener
     int lastPersonChanged;
     SiteShape @ objects[];
     GrainSwarm @ swarms[];
+    AudioFile file;
 
     // subdivisions for patterns in beginning
-    [ 0.2, 0.125, 0.25, 0.5, 1, 2, 2.5 ] @=> float subdivisions[];
+    [ 0.125, 0.00125, 0.25, 0.5, 1, 2, 0.0125 ] @=> float subdivisions[];
 
-    // normalized time stamps of audio segments
-    [ 0.0, // offwhite
-    0.1299, // orange
-    0.2598, // grey 
-    0.3350, // purple 
-    0.4648, // yellow 
-    0.5811, // green 
-    0.7111, // pink
-    0.8324  // brown
+    // seconds time stamps of audio segments
+    [ 0.0,
+      42.85,
+      85.7,
+      114.8,
+      157.7,
+      197.1,
+      239.1,
+      280.0,
+      316.0,
+      343.7,
+      382.0
     ] @=> float timestamps[];
 
     // base grain size calculated by handhelds
     1.0 => float baseGrainSize;
+    //
+    1.0 => float randomGrainSize;
     // max grain size
-    1026.0 => float grainSizeModifier; 
+    850.0 => float grainSizeModifier; 
     
     fun void SiteListener( int numObj, int nport )
     {
@@ -87,18 +95,60 @@ public class SiteListener
     }
 
     // set all types
-    fun void init( int types[] ) { for( int i; i < objects.size(); i++) types[i%types.size()] => objects[i].type; }
+    fun void init( int types[] ) 
+    { 
+        for( int i; i < objects.size(); i++) 
+        {
+            types[i%types.size()] => objects[i].type; 
+            swarms[i].pitch( subdivisions[Math.random2(0, subdivisions.size()-1 )] );
+        }
+    }
 
     // get last person
     fun int lastPerson() { return lastPersonChanged; }
 
-    fun void handheldWidth( float left, float right ) { Math.fabs( left - right ) * grainSizeModifier + 1.0 => baseGrainSize; }
+    // map hprizontal difference to grain size 
+    fun void handheldWidth( float left, float right ) 
+    { 
+        Math.fabs( left - right ) * grainSizeModifier + 1.0 => baseGrainSize;
 
-    // map difference in height to pitch
-    fun void handheldHeight( float left, float right ) { Math.fabs( left - right ); }
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].grainSize( baseGrainSize );
+        } 
+    }
 
-    // source file
-    fun void loadFile( string filename ) { for( int i; i < objCount; i++ ) swarms[i].fileSwap( filename ); }
+    // map difference and summation on hands' height to pitch
+    fun void handheldHeight( float left, float right ) 
+    { 
+        float pitches[2]; 
+        Std.scalef( Math.clampf( Math.fabs( left - right ), 0.0, 1.0 ), 0.0, 1.0, 0.0, 4.0 ) => pitches[0]; 
+        Std.scalef( Math.clampf( Math.fabs( left + right ), 0.0, 1.0 ), 0.0, 1.0, 0.0, 4.0 ) => pitches[1];
+        // <<< pitches[0], pitches[1] >>>;
+        for( int i; i < swarms.size(); i++ ) { swarms[i].pitch( pitches[i%pitches.size()] ); }
+    }
+
+    // silence
+    fun void silence()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].off();
+        }
+        swarms[0].off() => now;
+        <<< "All swarms quiet" >>>;
+    }
+
+    // print swarm info
+    fun void printSwarms()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            <<< "Swarm ", i, " pitch ", swarms[i].pitch() >>>;
+            <<< "       ", "size ", swarms[i].grainSize() >>>;
+            <<< "       ", "position ", swarms[i].position() >>>;
+        }
+    }
 
     // print last person changed
     fun void print()
@@ -112,6 +162,21 @@ public class SiteListener
                                      objects[lastPersonChanged].state >>>;
     }
     
+    // source file
+    fun void loadFile( string filename ) { for( int i; i < objCount; i++ ) swarms[i].fileSwap( filename ); file.loadFile( filename ); }
+
+    // reset everything
+    fun void reset()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].off();
+            swarms[i].position( 0.0 );
+            swarms[i].pitch( 1.0 );
+            swarms[i].grainSize( 58.0 );
+        }
+    }
+
     // listen for the signal
     fun void listenForSignal()
     {
@@ -124,17 +189,34 @@ public class SiteListener
         on => now;
         while( on.recv( msg ) )
         {
-            msg.getInt( 0 ) => go;
+            msg.getInt( 0 ) => start;
         }
 
-        if( go ) me.exit();
+        if( start ) { me.exit(); }
+    }
+
+    // listen for the signal
+    fun void listenForPrayer()
+    {
+        OscIn on;
+        OscMsg omsg;
+
+        on.port( port );
+        on.addAddress( "/prayer/start" );
+
+        on => now;
+        while( on.recv( msg ) )
+        {
+            // reset
+            reset();
+        }
     }
 
     // gametrack handling
     fun void updateShape()
     {
         <<< "waiting for signal" >>>;
-        while( !go )
+        while( !start )
         {
             for( int i; i < 10; i++ )
             {
@@ -170,20 +252,53 @@ public class SiteListener
                         change.broadcast();
                     }
                 }
+                // set all grain sizes ( not working great right now )
+                else if( msg.address == "/pattern/all" )
+                {
+                    msg.getInt( 0 ) => int newPattern;
+                    for( int i; i < swarms.size(); i++ )
+                    {
+                        newPattern => objects[i].pattern;
+                        swarms[i].grainSize( subdivisions[objects[lastPersonChanged].pattern] * baseGrainSize );
+                    }
+                }
             }
+            // buffer 
+            10::ms => now;
         }
     }
 
     // map parameters here
     fun void updateGrain()
     {
+        while( !start )
+        {
+            <<< "I am waiting " >>>;
+            500::ms => now;
+        }
         while( true )
         {
             change => now;
             if( !swarms[lastPersonChanged].onOff ) { swarms[lastPersonChanged].on(); <<< lastPersonChanged, " on" >>>; }
-            // pattern is a subdivision of the user's wingspan 
-            swarms[lastPersonChanged].grainSize( subdivisions[objects[lastPersonChanged].pattern] * baseGrainSize );
-            swarms[lastPersonChanged].position( timestamps[objects[lastPersonChanged - 1].color] );
+            // if exploded
+            if( objects[lastPersonChanged].exploded ) 
+            {
+                // set a grain size that is static
+                swarms[lastPersonChanged].grainSize( Math.random2f( 14.0, 89.0 ) );
+                // randomize pitch when you explode
+                swarms[lastPersonChanged].randomPitch( objects[lastPersonChanged].exploded * Math.random2f( 1.0, 8.0 ) );
+            }
+            // if not exploded
+            else 
+            {
+                // pattern is a subdivision of the user's wingspan 
+                swarms[lastPersonChanged].grainSize( subdivisions[objects[lastPersonChanged].pattern] * baseGrainSize );    
+                // color == position
+                swarms[lastPersonChanged].position( file.normalizedPosition( timestamps[objects[lastPersonChanged - 1].color] ) );
+            }
+            // a buffer will save you some day
+            50::ms => now;
+            // <<<  file.normalizedPosition( timestamps[objects[lastPersonChanged - 1].color] ) >>>;
         }
     }
 }

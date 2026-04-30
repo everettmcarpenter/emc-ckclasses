@@ -2,15 +2,15 @@
 
 public class GrainSwarm extends Chugraph
 {
-    Granulator grains[1] => Gain sum(1.0) => Envelope env(50::ms) => outlet;
+    Granulator grains[1] => Gain sum( 1.0 / ( 1.0 ) ) => Envelope env( 3::second ) => outlet;
 
-    float cpitch; float cposition; float csize; string cfile; int cloop; float crandomsize; float crandompos; int cspace; int onOff;
+    float cpitch; float cposition; float csize; string cfile; int cloop; float crandomsize; float crandompos; float crandompitch; int cspace; int onOff;
 
-    fun void GrainSwarm(string file)
+    fun void GrainSwarm( string file )
     {
         for(int i; i < grains.size(); i++)
         {
-            grains[i].fileChange(file);
+            grains[i].fileChange( file );
             grains[i].grainSize(50.0);
             1.0 => grains[i].rand_grain_duration;
             grains[i].play();
@@ -42,7 +42,19 @@ public class GrainSwarm extends Chugraph
         Math.randomf() * 50.0 => this.randomGrainSize;
     }
 
-    fun void interpolation(int type)
+    fun void turnOn( int which )
+    {
+        if( which < grains.size() && which >= 0 ) { grains[which].on(); }
+        else { <<< "GrainSwarm : ", " error when turning on grains." >>>; }
+    }
+
+    fun void turnOff( int which )
+    {
+        if( which < grains.size() && which >= 0 ) { grains[which].off(); }
+        else { <<< "GrainSwarm : ", " error when turning off grains." >>>; }
+    }
+
+    fun void interpolation( int type )
     {
         for(int i; i < grains.size(); i++)
         {
@@ -50,7 +62,7 @@ public class GrainSwarm extends Chugraph
         }
     }
 
-    fun void loop(int onOff)
+    fun void loop( int onOff )
     {
         for(int i; i < grains.size(); i++)
         {
@@ -136,6 +148,17 @@ public class GrainSwarm extends Chugraph
 
     fun float randomPosition() { return crandompos; }
 
+    fun void randomPitch( float amt )
+    {
+        amt => crandompitch;
+        for(int i; i < grains.size(); i++)
+        {
+            grains[i].randomPitch(crandompitch);
+        }
+    }
+
+    fun float randomPitch() { return crandompitch; }
+
     fun int fileSize() { return grains[0].samples; }
 
     fun void spacer(int space)
@@ -150,6 +173,7 @@ public class GrainSwarm extends Chugraph
 
     fun dur on()
     {
+        for( int i; i < grains.size(); i++ ) grains[i].on();
         env.keyOn();
         1 => onOff;
         return env.duration();
@@ -157,6 +181,7 @@ public class GrainSwarm extends Chugraph
 
     fun dur off()
     {
+        for( int i; i < grains.size(); i++ ) grains[i].off();
         env.keyOff();
         0 => onOff;
         return env.duration();
