@@ -10,7 +10,7 @@ public class SiteListener
 
     // change
     Event change;
-    0 => int start;
+    1 => int start;
     1 => int currentStage;
 
     // default port
@@ -24,7 +24,7 @@ public class SiteListener
     AudioFile file;
 
     // subdivisions for patterns in beginning
-    [ 0.125, 0.00125, 0.25, 0.5, 1, 2, 0.0125 ] @=> float subdivisions[];
+    [ 0.125, 0.05, 0.25, 0.5, 1, 2, 0.0125 ] @=> float subdivisions[];
 
     // seconds time stamps of audio segments
     [ 0.0,
@@ -35,9 +35,9 @@ public class SiteListener
       197.1,
       239.1,
       280.0,
-      316.0,
-      343.7,
-      382.0
+      320.0, // sky crazy 1
+      343.7, // sky crazy 2
+      382.0 // bits
     ] @=> float timestamps[];
 
     // base grain size calculated by handhelds
@@ -68,12 +68,11 @@ public class SiteListener
         // start listening
         spork ~ listenForSignal();
         spork ~ updateShape();
-        spork ~ updateGrain();
     }
 
     fun void SiteListener( int numObj )
     {
-        if( !oin.port(port) ) { <<< "SiteListener : Constructor failed, port could not be opened." >>>; me.exit(); }
+        if( !oin.port( port ) ) { <<< "SiteListener : Constructor failed, port could not be opened." >>>; me.exit(); }
 
         // listen 
         oin.listenAll();
@@ -91,7 +90,6 @@ public class SiteListener
         // start listening
         spork ~ listenForSignal();
         spork ~ updateShape();
-        spork ~ updateGrain();
     }
 
     // set all types
@@ -114,7 +112,7 @@ public class SiteListener
 
         for( int i; i < swarms.size(); i++ )
         {
-            swarms[i].grainSize( baseGrainSize );
+            updateGrainSize( swarms[i], objects[i] );
         } 
     }
 
@@ -122,8 +120,8 @@ public class SiteListener
     fun void handheldHeight( float left, float right ) 
     { 
         float pitches[2]; 
-        Std.scalef( Math.clampf( Math.fabs( left - right ), 0.0, 1.0 ), 0.0, 1.0, 0.0, 4.0 ) => pitches[0]; 
-        Std.scalef( Math.clampf( Math.fabs( left + right ), 0.0, 1.0 ), 0.0, 1.0, 0.0, 4.0 ) => pitches[1];
+        Std.scalef( Math.clampf( Math.fabs( left - right ), 0.0, 1.0 ), 0.0, 1.0, 0.8, 4.0 ) => pitches[0] => pitches[1]; 
+        // Std.scalef( Math.clampf( Math.fabs( left + right ), 0.0, 1.0 ), 0.0, 1.0, 0.0, 4.0 ) => pitches[1];
         // <<< pitches[0], pitches[1] >>>;
         for( int i; i < swarms.size(); i++ ) { swarms[i].pitch( pitches[i%pitches.size()] ); }
     }
@@ -131,9 +129,9 @@ public class SiteListener
     // silence
     fun void silence()
     {
-        for( int i; i < swarms.size(); i++ )
+        for( 1 => int i; i < swarms.size(); i++ )
         {
-            swarms[i].off();
+            spork ~ swarms[i].off();
         }
         swarms[0].off() => now;
         <<< "All swarms quiet" >>>;
@@ -170,10 +168,67 @@ public class SiteListener
     {
         for( int i; i < swarms.size(); i++ )
         {
+            // turn all swarms off
             swarms[i].off();
             swarms[i].position( 0.0 );
             swarms[i].pitch( 1.0 );
-            swarms[i].grainSize( 58.0 );
+
+            // reset audio side objects
+            objects[i].init();
+        }
+    }
+
+    // derandomize size
+    fun void derandomizeSize()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].randomGrainSize( 0.0 );
+        }
+    }
+
+    // randomize size
+    fun void randomizeSize()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].randomGrainSize( 3000.0 );
+        }
+    }
+
+    // derandomize position 
+    fun void derandomizePosition()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].randomPosition( 0.0 );
+        }
+    }
+
+    // randomize position 
+    fun void randomizePosition()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].randomPosition( 800.0 );
+        }
+    }
+
+    // derandomize all
+    fun void derandomizePitch()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].randomPitch( 0.0 );
+        }
+    } 
+
+    // randomize all
+    fun void randomizePitch()
+    {
+        for( int i; i < swarms.size(); i++ )
+        {
+            swarms[i].randomPitch( 4.0 );
         }
     }
 
@@ -218,12 +273,7 @@ public class SiteListener
         <<< "waiting for signal" >>>;
         while( !start )
         {
-            for( int i; i < 10; i++ )
-            {
-                cherr <= " . ";
-                500::ms => now;
-            }
-            cherr <= IO.nl();
+            1::ms => now;
         }
 
         <<< "let us begin. . . " >>>;
@@ -247,8 +297,25 @@ public class SiteListener
                         msg.getInt( 3 ) => objects[who].pattern;
                         msg.getInt( 4 ) => objects[who].exploded;
                         msg.getInt( 5 ) => objects[who].moving;
-                        // this was the last person changed
-                        who => lastPersonChanged;
+                        
+                        <<< "updated,", who >>>;
+                        if( objects[who].color() ) 
+                        {
+                            updateGrain( swarms[who], objects[who] );
+                            <<< "updated grain ", who >>>;
+                        }
+                        // print
+                        2 => int totalOn;
+                        // dynamically set volume
+                        for( int i; i < objects.size(); i++ )
+                        {
+                            if( objects[i].color() ) 1 +=> totalOn;
+                        }
+                        for( 0 => int i; i < swarms.size(); i++ )
+                        {
+                            swarms[i].volume( 1.0 / totalOn );
+                            // <<< 1.0 / totalOn, totalOn >>>;
+                        }
                         change.broadcast();
                     }
                 }
@@ -258,8 +325,33 @@ public class SiteListener
                     msg.getInt( 0 ) => int newPattern;
                     for( int i; i < swarms.size(); i++ )
                     {
-                        newPattern => objects[i].pattern;
-                        swarms[i].grainSize( subdivisions[objects[lastPersonChanged].pattern] * baseGrainSize );
+                        // pattern
+                        objects[i].pattern( newPattern );
+                        // update
+                        if( objects[i].color() ) 
+                        {
+                            updateGrain( swarms[i], objects[i] );
+                            <<< "updated grain ", i >>>;
+                        }
+                    }
+                }
+                // sky change
+                else if( msg.address == "/stage/start" )
+                {
+                    for( int i; i < 20; i++ )
+                    {
+                        // random grains
+                        // Math.random2( 0, objects.size() - 1 ) => int randomGuy;
+                        // lock
+                        objects[i].lock();
+                        // print
+                        <<< "Grain ", i, "locked." >>>;
+                        // set grain size
+                        swarms[i].grainSize( Math.random2f( 4023.0, 5000.0 ) );
+                        // set pitch
+                        swarms[i].pitch( 0.8 );
+                        // set position
+                        swarms[i].position( Math.random2f( file.normalizedPosition( timestamps[8] ), file.normalizedPosition( timestamps[8] + 10.0 ) ) );
                     }
                 }
             }
@@ -269,36 +361,51 @@ public class SiteListener
     }
 
     // map parameters here
-    fun void updateGrain()
+    fun void updateGrain( GrainSwarm subject, SiteShape object )
     {
-        while( !start )
-        {
-            <<< "I am waiting " >>>;
-            500::ms => now;
+        if( !subject.onOff ) 
+        { 
+            subject.on(); <<< " on." >>>; 
         }
-        while( true )
+        // if exploded
+        if( object.exploded() ) 
         {
-            change => now;
-            if( !swarms[lastPersonChanged].onOff ) { swarms[lastPersonChanged].on(); <<< lastPersonChanged, " on" >>>; }
-            // if exploded
-            if( objects[lastPersonChanged].exploded ) 
-            {
-                // set a grain size that is static
-                swarms[lastPersonChanged].grainSize( Math.random2f( 14.0, 89.0 ) );
-                // randomize pitch when you explode
-                swarms[lastPersonChanged].randomPitch( objects[lastPersonChanged].exploded * Math.random2f( 1.0, 8.0 ) );
-            }
-            // if not exploded
-            else 
-            {
-                // pattern is a subdivision of the user's wingspan 
-                swarms[lastPersonChanged].grainSize( subdivisions[objects[lastPersonChanged].pattern] * baseGrainSize );    
-                // color == position
-                swarms[lastPersonChanged].position( file.normalizedPosition( timestamps[objects[lastPersonChanged - 1].color] ) );
-            }
-            // a buffer will save you some day
-            50::ms => now;
-            // <<<  file.normalizedPosition( timestamps[objects[lastPersonChanged - 1].color] ) >>>;
+            // set a grain size that is static
+            subject.grainSize( Math.random2f( 2051.0, 2589.0 ) );
+            // randomize position
+            subject.randomPosition( 50.0 );
+            // randomize grain length
+            subject.randomGrainSize( 200.0 );
+            // randomize pitch when you explode
+            subject.position( file.normalizedPosition( Math.random2f( timestamps[10], timestamps[10] + 24.0 ) ) );
+            <<< "exploded guy" >>>;
+        }
+        // if not exploded
+        else
+        {
+            // pattern is a subdivision of the user's wingspan 
+            subject.grainSize( subdivisions[object.pattern()] * baseGrainSize ); 
+            // <<< "set grain ", subdivisions[object.pattern()] >>>;   
+            // color == position
+            subject.position( file.normalizedPosition( timestamps[object.color() - 1] ) );
+        }
+        // <<<  file.normalizedPosition( timestamps[objects[lastPersonChanged - 1].color] ) >>>;
+    }
+
+    // update only the grain size (used in the handheld spork)
+    fun void updateGrainSize( GrainSwarm subject, SiteShape object )
+    {
+        if( object.exploded() ) 
+        {
+            // set a grain size that is static
+            subject.grainSize( Math.random2f( 414.0, 489.0 ) );
+        }
+        // if not exploded
+        else
+        {
+            // pattern is a subdivision of the user's wingspan 
+            subject.grainSize( subdivisions[object.pattern()] * baseGrainSize ); 
         }
     }
+
 }

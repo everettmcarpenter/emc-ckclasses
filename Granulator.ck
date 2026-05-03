@@ -121,7 +121,7 @@ public class Granulator extends Chugraph
     fun void ramp_gain()
     { 
         // the slew
-        0.5 => float slew;
+        0.25 => float slew;
         // go
         while( true )
         {
@@ -165,6 +165,7 @@ public class Granulator extends Chugraph
                 pause => now; // until next grain
                 if( spacer%2 ) Std.rand2f( space_length*Math.max(1.0, grain_duration - rand_grain_duration), grain_duration + rand_grain_duration)::ms => now; // if the spacer is enabled, it will cause random pauses between grains
             }
+            else 1::ms => now;
         }
     }
 
@@ -177,7 +178,7 @@ public class Granulator extends Chugraph
     fun void off()
     {
         env[0].keyOff();
-        0 => gain_target;
+        0.0 => gain_target;
         0 => go;
     }
 
