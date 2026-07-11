@@ -1,8 +1,9 @@
 @import "DJMidi.ck"
-public class OSCDJMidi extends DJMidi
+public class ROSCDJMidi extends DJMidi
 {
     // interpreters
-    OscOut oout;
+    OscIn oin; OscMsg omsg;
+    DJMidi @ myMidi; // personal midi storage
 
     // destination host name
     "localhost" => string hostname;
@@ -10,38 +11,28 @@ public class OSCDJMidi extends DJMidi
     6449 => int port;
 
     // aim the transmitter at destination
-    oout.dest( hostname, port );
+    oin.addAddress( "BCD/" );
 
     // overloaded constructor
-    fun void OSCDJMidi( int device )
+    fun void ROSCDJMidi()
     {
-        // storage
-        device => this.midiDevice;
-        // open the device
-        if( !midin.open( this.midiDevice ) ) me.exit();
         // print out device that was opened
         <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
         // aim the transmitter at destination
-        oout.dest( hostname, port );
+        oin.port( port );
         // update
         spork ~ update();
     }
 
     // overloaded constructor
-    fun void OSCDJMidi( int device, string hostname, int port )
+    fun void ROSCDJMidi( int port )
     {
-        // hostname
-        hostname => this.hostname;
         // port
         port => this.port;
-        // storage
-        device => this.midiDevice;
-        // open the device
-        if( !midin.open( this.midiDevice ) ) me.exit();
         // print out device that was opened
         <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
         // aim the transmitter at destination
-        oout.dest( hostname, port );
+        oin.port( port );
         // update
         spork ~ update();
     }
@@ -59,14 +50,19 @@ public class OSCDJMidi extends DJMidi
     // listen and update internal data
     fun void update()
     {
+        // infinite event loop
         while( true )
         {
-            midin => now;
-            if( midimsg.data2 >= 0 || midimsg.data2 <= 2 )
+            // wait for event to arrive
+            oin => now;
+
+            // grab the next message from the queue. 
+            while( oin.recv( omsg ) )
             {
-                midimsg.data3 => faders[midimsg.data2];
-                oscSend( "BCD/slider/" + midimsg.data2 + "/", faders[midimsg.data2] );
-                1::ms => now;
+                if( omsg.address == "BCD/" )
+                {
+                    if( myMidi ) myMidi.update( omsg.getInt( 0 ), omsg.getInt( 1 ) );
+                }
             }
         }
     }

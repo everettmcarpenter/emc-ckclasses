@@ -73,15 +73,19 @@ public class GameController
                 // joystick hat/POV switch/d-pad motion
                 else if( msg.isHatMotion() )
                 {
-                    if(!msg.idata) {hatState.zero(); cherr <= "d-pad left: " <= hatState[0] <= IO.nl() 
+                    if(print)
+                    { 
+                        if(!msg.idata) {hatState.zero(); cherr <= "d-pad left: " <= hatState[0] <= IO.nl() 
                                                            <= "d-pad down: " <= hatState[1] <= IO.nl() 
                                                            <= "d-pad right: " <= hatState[2] <= IO.nl() 
                                                            <= "d-pad up: " <= hatState[3] <= IO.nl();}
-                    else if(msg.idata == 8) {1 => hatState[0]; <<< "d-pad left: ", hatState[0] >>>;}
-                    else if(msg.idata == 4) {1 => hatState[1]; <<< "d-pad down: ", hatState[1] >>>;}
-                    else if(msg.idata == 2) {1 => hatState[2]; <<< "d-pad right: ", hatState[2] >>>;}
-                    else if(msg.idata == 1) {1 => hatState[3]; <<< "d-pad up: ", hatState[3] >>>;}
+                        else if(msg.idata == 8) {1 => hatState[0]; <<< "d-pad left: ", hatState[0] >>>;}
+                        else if(msg.idata == 4) {1 => hatState[1]; <<< "d-pad down: ", hatState[1] >>>;}
+                        else if(msg.idata == 2) {1 => hatState[2]; <<< "d-pad right: ", hatState[2] >>>;}
+                        else if(msg.idata == 1) {1 => hatState[3]; <<< "d-pad up: ", hatState[3] >>>;}
+                    }
                 }
+                1::ms => now;
             }
         }
     }

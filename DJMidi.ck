@@ -1,42 +1,48 @@
-public class DJMidi
+// a utility data class for the Behringer BCD2000
+public class DJMidi 
 {
-    // interpreters
-    MidiIn midin; MidiMsg midimsg;
-    // device number
-    int midiDevice; 
     // rotary controls // wheels (-1, 0, 1) // faders
-    int rotary[18]; int wheel[2]; int faders[5];
+    int deckA[4]; // deck A low, mid, high and gain CC's (3-6)
+    int deckB[4]; // deck B low, mid, high and gain CC's (7-10)
+    int fx[4]; // A, B, C, D cc's (13-16)
+    int output; // output knob CC 17
+    int deckBScratch; // -1, 0, 1 CC 18
+    int deckAScratch; // -1, 0, 1 CC 19
+    int deckAPitch; // CC 11
+    int deckAVolume; // CC 0
+    int crossFade; // CC 1
+    int deckBPitch; // CC 12
+    int deckBVolume; // CC 2
 
-    // constructor
-    fun void DJMidi() 
-    {
-        // open the device
-        if( !midin.open( midiDevice ) ) me.exit();
-        // print out device that was opened
-        <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
-    }
-
-    // overloaded constructor
-    fun void DJMidi( int device )
-    {
-        // storage
-        device => this.midiDevice;
-        // open the device
-        if( !midin.open( midiDevice ) ) me.exit();
-        // print out device that was opened
-        <<< "MIDI device:", midin.num(), " -> ", midin.name() >>>;
-    }
+    // last cc changed
+    int lastCC;
 
     // listen and update internal data
-    fun void update()
+    fun void update( int value, int cc )
     {
-        while( true )
-        {
-            midin => now;
-            while( midin.recv( midimsg ) )
-            {
-                if( midimsg.data2 >= 0 && midimsg.data2 < 2 ) midimsg.data3 => faders[midimsg.data2];
-            }
-        }
+        // deck A volume ?
+        if( cc == 0 ) value => deckAVolume;
+        // crossfade ?
+        else if( cc == 1 ) value => crossFade;
+        // deck B volume?
+        else if( cc == 2 ) value => deckBVolume;
+        // deck A ?
+        else if( cc >= 3 && cc <= 6 ) value => deckA[cc - 3]; 
+        // deck B ?
+        else if( cc >= 7 && cc <= 10 ) value => deckB[cc - 7];
+        // deck A pitch ?
+        else if( cc == 11 ) value => deckAPitch;
+        // deck B pitch ?
+        else if( cc == 12 ) value => deckBPitch;
+        // fx ?
+        else if( cc >= 13 && cc <= 16 ) value => fx[cc - 13];
+        // output knob ?
+        else if( cc == 17 ) value => output;
+        // scratch ?
+        else if( cc == 18 ) value => deckBScratch;
+        // scratch A ?
+        else if( cc == 19 ) value => deckAScratch;
+        // the last cc 
+        cc => this.lastCC;
     }
 }
