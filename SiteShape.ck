@@ -50,5 +50,4 @@ public class SiteShape
         state( 0 );
         unlock();
     }
-
 }
